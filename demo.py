@@ -1,27 +1,49 @@
 import cv2
 import numpy as np
-import tempfile
 import streamlit as st
+from streamlit_webrtc import VideoTransformerBase, webrtc_streamer
 
-cap=cv2.VideoCapture(0)
+# Define a Video Transformer that applies Canny Edge Detection
+class CannyEdgeTransformer(VideoTransformerBase):
+    def __init__(self):
+        # You can initialize any variables here if needed
+        pass
 
-st.title("demo app")
+    def transform(self, frame):
+        # Convert the frame to a NumPy array in BGR format
+        img = frame.to_ndarray(format="bgr24")
 
-frame_placeholder=st.empty()
+        # Convert to grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-stop_button_pressed=st.button("stop")
+        # Apply Gaussian Blur to reduce noise and improve edge detection
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
-while cap.isOpened() and not stop_button_pressed:
-  ret,frame=cap.read()
-  if not ret:
-    st.write("The video capture has ended.")
-    break
+        # Apply Canny Edge Detection
+        edges = cv2.Canny(blurred, 50, 150)
 
-  frame=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-  frame_placeholder.image(frame,channels="RGB")
+        # Convert single channel back to three channels to display in Streamlit
+        edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
 
-  if cv2.waitKey(1) & 0xFF ==ord("q") or stop_button_pressed:
-    break
-cap.release()
-cv2.destroyAllWindows()
-  
+        return edges_colored
+
+# Streamlit App Layout
+st.title("Live Webcam Feed with Canny Edge Detection")
+st.write("This app captures your webcam feed and applies a Canny edge detection filter in real-time.")
+
+# Add a description or instructions if needed
+st.markdown("""
+- Click on the **Start** button to begin streaming.
+- The processed video with Canny edges will be displayed.
+- Click on the **Stop** button to end streaming.
+""")
+
+# Initialize the WebRTC streamer with the CannyEdgeTransformer
+webrtc_streamer(
+    key="canny-edge",
+    video_transformer_factory=CannyEdgeTransformer,
+    media_stream_constraints={
+        "video": True,
+        "audio": False  # Disable audio to reduce bandwidth
+    }
+)
