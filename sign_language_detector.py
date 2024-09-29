@@ -2,9 +2,12 @@ import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, WebRtcMode
 import cv2
 import av
+import logging
+
+# Enable debug logging for streamlit-webrtc
+logging.getLogger('streamlit-webrtc').setLevel(logging.DEBUG)
 
 # Suppress unnecessary warnings (optional)
-import logging
 logging.getLogger("asyncio").setLevel(logging.ERROR)
 
 # Streamlit sliders for Canny edge detection thresholds
