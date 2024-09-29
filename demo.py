@@ -41,7 +41,7 @@ st.markdown("""
 # Initialize the WebRTC streamer with the CannyEdgeTransformer
 webrtc_streamer(
     key="canny-edge",
-    video_transformer_factory=CannyEdgeTransformer,
+    video_processor_factory =CannyEdgeTransformer,
     media_stream_constraints={
         "video": True,
         "audio": False  # Disable audio to reduce bandwidth
