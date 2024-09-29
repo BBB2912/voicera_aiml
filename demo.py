@@ -21,7 +21,7 @@ while cap.isOpened() and not stop_button_pressed:
   frame_placeholder.image(frame,channels="RGB")
 
   if cv2.waitKey(1) & 0xFF ==ord("q") or stop_button_pressed:
-  break
+    break
 cap.release()
 cv2.destroyAllWindows()
   
