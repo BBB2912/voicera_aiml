@@ -86,6 +86,4 @@ if run_detection:
             sign_placeholder.empty()  # Clear the previous output
             sign_placeholder.write('Detected Sign: ' + current_sign)  # Overwrite the displayed sign
 
-# Release resources after the loop
-cap.release()
-cv2.destroyAllWindows()
+
