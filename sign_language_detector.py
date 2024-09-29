@@ -18,7 +18,7 @@ class CannyEdgeTransformer(VideoTransformerBase):
         self.th1 = th1
         self.th2 = th2
 
-    def transform(self, frame):
+    def recv(self, frame):
         # Update thresholds based on current slider values
         self.th1 = th1
         self.th2 = th2
@@ -48,9 +48,9 @@ st.write("Adjust the sliders in the sidebar to change the Canny edge detection t
 webrtc_streamer(
     key="canny-edge",
     mode=WebRtcMode.SENDRECV,  # Enable both sending and receiving video
-    video_transformer_factory=CannyEdgeTransformer,  # Pass the transformer class
+    video_processor_factory =CannyEdgeTransformer,  # Pass the transformer class
     media_stream_constraints={"video": True, "audio": False},  # Enable video, disable audio
-    async_transform=True,  # Enable asynchronous frame processing for better performance
+    async_processing =True,  # Enable asynchronous frame processing for better performance
 )
 
 # Display current threshold values
