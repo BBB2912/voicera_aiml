@@ -1,28 +1,57 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, WebRtcMode
 import cv2
 import av
 
-# Define sliders to control Canny edge detection thresholds
-th1 = st.slider("Threshold1", 0, 1000, 100)
-th2 = st.slider("Threshold2", 0, 1000, 200)  # Changed to th2
+# Suppress unnecessary warnings (optional)
+import logging
+logging.getLogger("asyncio").setLevel(logging.ERROR)
 
-# Define the callback function that processes each video frame
-def callback(frame: av.VideoFrame):
-    # Convert the frame to a NumPy array in BGR24 format
-    image = frame.to_ndarray(format="bgr24")
-    
-    # Convert the image to grayscale and apply Canny edge detection
-    image = cv2.Canny(image, th1, th2)
-    
-    # Convert the image back to a 3-channel image (RGB)
-    image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-    
-    # Return the processed frame as a new VideoFrame
-    return av.VideoFrame.from_ndarray(image, format="bgr24")
+# Streamlit sliders for Canny edge detection thresholds
+st.sidebar.title("Canny Edge Detection Parameters")
+th1 = st.sidebar.slider("Threshold1", 0, 500, 100)
+th2 = st.sidebar.slider("Threshold2", 0, 500, 200)
 
-# Stream video using the callback function for processing frames
+# Define the Video Transformer using VideoTransformerBase
+class CannyEdgeTransformer(VideoTransformerBase):
+    def __init__(self):
+        self.th1 = th1
+        self.th2 = th2
+
+    def transform(self, frame):
+        # Update thresholds based on current slider values
+        self.th1 = th1
+        self.th2 = th2
+
+        # Convert frame to numpy array
+        img = frame.to_ndarray(format="bgr24")
+
+        # Convert to grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # Apply Gaussian Blur to reduce noise (optional but recommended)
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+        # Apply Canny Edge Detection
+        edges = cv2.Canny(blurred, self.th1, self.th2)
+
+        # Convert single channel edge image back to BGR for display
+        edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+
+        return edges_colored
+
+# Initialize Streamlit app layout
+st.title("Live Webcam Feed with Canny Edge Detection")
+st.write("Adjust the sliders in the sidebar to change the Canny edge detection thresholds.")
+
+# Configure WebRTC streamer
 webrtc_streamer(
-    key="sample",
-    video_frame_callback=callback  # Corrected the parameter name to 'video_frame_callback'
+    key="canny-edge",
+    mode=WebRtcMode.SENDRECV,  # Enable both sending and receiving video
+    video_transformer_factory=CannyEdgeTransformer,  # Pass the transformer class
+    media_stream_constraints={"video": True, "audio": False},  # Enable video, disable audio
+    async_transform=True,  # Enable asynchronous frame processing for better performance
 )
+
+# Display current threshold values
+st.sidebar.markdown(f"**Current Thresholds:**\n- Threshold1: {th1}\n- Threshold2: {th2}")
