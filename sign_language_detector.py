@@ -15,10 +15,11 @@ th2 = st.sidebar.slider("Threshold2", 0, 500, 200)
 # Define the Video Transformer using VideoTransformerBase
 class CannyEdgeTransformer(VideoTransformerBase):
     def __init__(self):
+        super().__init__()  # Call the base class constructor
         self.th1 = th1
         self.th2 = th2
 
-    def recv(self, frame):
+    def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
         # Update thresholds based on current slider values
         self.th1 = th1
         self.th2 = th2
@@ -38,7 +39,10 @@ class CannyEdgeTransformer(VideoTransformerBase):
         # Convert single channel edge image back to BGR for display
         edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
 
-        return edges_colored
+        # Create a new av.VideoFrame from the processed image
+        frame_out = av.VideoFrame.from_ndarray(edges_colored, format="bgr24")
+
+        return frame_out
 
 # Initialize Streamlit app layout
 st.title("Live Webcam Feed with Canny Edge Detection")
@@ -48,9 +52,9 @@ st.write("Adjust the sliders in the sidebar to change the Canny edge detection t
 webrtc_streamer(
     key="canny-edge",
     mode=WebRtcMode.SENDRECV,  # Enable both sending and receiving video
-    video_processor_factory =CannyEdgeTransformer,  # Pass the transformer class
+    video_processor_factory=CannyEdgeTransformer,  # Pass the transformer class
     media_stream_constraints={"video": True, "audio": False},  # Enable video, disable audio
-    async_processing =True,  # Enable asynchronous frame processing for better performance
+    async_processing=True,  # Enable asynchronous frame processing for better performance
 )
 
 # Display current threshold values
