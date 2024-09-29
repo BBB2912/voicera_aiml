@@ -89,6 +89,6 @@ st.write("This app detects sign language using your webcam feed.")
 webrtc_streamer(
     key="sign-language",
     mode=WebRtcMode.SENDRECV,
-    video_transformer_factory=SignLanguageTransformer,
+    video_processor_factory =SignLanguageTransformer,
     media_stream_constraints={"video": True, "audio": False},
 )
